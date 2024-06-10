@@ -14,7 +14,7 @@ cloudpickle==2.2.1
 coloredlogs==15.0.1
 contourpy==1.2.1
 coverage==7.3.1
-cryptography==3.4.8
+cryptography==42.0.4
 cycler==0.12.1
 dbus-python==1.2.18
 deepspeed==0.9.3
