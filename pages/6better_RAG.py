@@ -24,7 +24,7 @@ def load_rag():
     docs = loader.load()
     text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
     splits = text_splitter.split_documents(docs)
-    vectorstore = Chroma.from_documents(documents=splits, embedding=HuggingFaceEmbeddings())
+    vectorstore = Chroma.from_documents(documents=splits, embedding=HuggingFaceEmbeddings(model_name="monsoon-nlp/bert-base-thai"))
 
     # Retrieve and generate using the relevant snippets of the blog.
     retriever = vectorstore.as_retriever()
