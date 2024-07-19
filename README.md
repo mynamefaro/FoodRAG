@@ -2,7 +2,7 @@
 
 Welcome to the NutriChatBot repository! This ChatBot is designed to provide users with reliable nutritional information from a unique dual-perspective approach—both as a patient and a doctor. Our ChatBot utilizes advanced Retrieval Augmented Generation (RAG) techniques to fetch factual data from external sources, ensuring that users receive accurate and up-to-date information.
 
-![FoodRAG](images/FoodRAG.png)
+![FoodRAG](assets/images/FoodRAG.png)
 
 ## Features
 

@@ -17,7 +17,8 @@
 				"ms-python.python",
 				"ms-toolsai.jupyter",
 				"VisualStudioExptTeam.vscodeintellicode",
-				"mgesbert.python-path"
+				"mgesbert.python-path",
+				"qwtel.sqlite-viewer"
 			]
 		}
 	},
