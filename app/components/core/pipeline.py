@@ -12,7 +12,7 @@ from langgraph.prebuilt import tools_condition
 
 import dotenv
 import os
-from state import State
+from state import GraphState
 from app.components.llm.nvidia import AgentNVIDIA, TooledChatNVIDIA
 
 from langchain_core.messages import ToolMessage
@@ -50,7 +50,7 @@ load_env()
 
 
 @tool()
-def get_user_info(state: State):
+def get_user_info(state: GraphState):
     """
     Useful when we want to know the user's name or other information
     Arg:
@@ -65,7 +65,7 @@ def get_user_info(state: State):
 
 
 @tool()
-def recommend_food(state: State):
+def recommend_food(state: GraphState):
     """
     Useful when recommending food to the user
     Arg:
@@ -83,7 +83,7 @@ class Assistant:
     def __init__(self, runnable: Runnable):
         self.runnable = runnable
 
-    def __call__(self, state: State, config: RunnableConfig):
+    def __call__(self, state: GraphState, config: RunnableConfig):
         while True:
             configuration = config.get("configurable", {})
             user_info = configuration.get("user_info", None)
@@ -126,7 +126,7 @@ chat_prompt = ChatPromptTemplate.from_messages(
 chat_runnable = chat_prompt | llm.bind_tools(chat_tools)
 
 
-builder = StateGraph(State)
+builder = StateGraph(GraphState)
 builder.add_node("assistant", Assistant(chat_runnable))
 # Define edges: these determine how the control flow moves
 builder.add_edge(START, "assistant")

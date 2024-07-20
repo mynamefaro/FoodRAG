@@ -8,7 +8,7 @@ from langchain.tools.render import render_text_description
 from langchain.agents.output_parsers import ReActJsonSingleInputOutputParser
 from langchain.agents.format_scratchpad import format_log_to_str
 
-from app.components.core import State
+from app.components.core import GraphState
 
 
 class TooledChatNVIDIA(ServerToolsMixin, _ChatNVIDIA):
@@ -69,7 +69,7 @@ class AgentNVIDIA:
             tool_names=[tool.name for tool in self.__tools],
         )
 
-    def invoke(self, state: State):
+    def invoke(self, state: GraphState):
         if self.__agent is None:
             self.setup_agent()
         return self.__agent.invoke(state)

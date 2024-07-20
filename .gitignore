@@ -4,3 +4,5 @@ chroma*/
 *.db
 /**/*.pdf
 .files/*
+.hypothesis/
+/**/*.ipynb
