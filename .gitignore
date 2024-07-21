@@ -6,3 +6,7 @@ chroma*/
 .files/*
 .hypothesis/
 /**/*.ipynb
+.devcontainer/neo4j_db/
+.devcontainer/*-data/
+extractor/
+assets/
