@@ -44,7 +44,8 @@ class PDFLoader:
         for page in pages:
             text = pytesseract.image_to_string(page)
             text_data += text
-        docs = [Document(page_content=text_data)]
+        docs = self.__text_splitter.split_documents(
+            [Document(page_content=text_data)])
         if revise:
             return self.remove_unwanted_text(docs)
         return docs
