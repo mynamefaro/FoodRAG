@@ -10,3 +10,4 @@ chroma*/
 .devcontainer/*-data/
 extractor/
 assets/
+!runner.ipynb
