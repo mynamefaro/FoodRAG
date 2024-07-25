@@ -5,6 +5,7 @@ from langchain_core.language_models import BaseChatModel
 from langchain_openai.chat_models import ChatOpenAI
 from langchain_core.messages import HumanMessage
 import base64
+from PIL import Image
 from ..tools.reviser import DocumentReviserToolNVIDIA
 
 IMAGE_DESCRIPTOR_PROMPT = "Please describe the image below with context below:\n\n"
@@ -23,16 +24,18 @@ class ImageLoader:
         # load to scan ocr first if the image has very little text then use descriptor
         ocred_text = self.__load_ocr(path)
         if len(ocred_text) > 200:
-            return ocred_text
+            doc = Document(page_content=ocred_text)
         else:
-            return self.__llm_descriptor.invoke([
+            doc = Document(page_content=self.__llm_descriptor.invoke([
                 HumanMessage(content=[
                     {"type": "text", "text": IMAGE_DESCRIPTOR_PROMPT},
                     {"type": "text", "text": ocred_text},
                     {"type": "image_url", "image_url": {
                         "url": f"data:image/jpeg;base64,{self.__encode_image(path)}"}}
                 ])
-            ]).content
+            ]).content)
+        image = Image.open(path)
+        return doc, self.__encode_image(path)
 
     def __load_ocr(self, path: str):
         text = pytesseract.image_to_string(path)

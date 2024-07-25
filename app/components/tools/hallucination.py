@@ -3,8 +3,8 @@ from langchain_nvidia_ai_endpoints import ChatNVIDIA
 from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
-from app.components.core.state import GraphState
-from app.utils.utils import load_env
+from ..core.state import GraphState
+from ..utils import load_env
 
 load_env()
 

@@ -110,8 +110,3 @@ class DocumentReviserToolOpenAI(RunnableGenerator):
             generator = self.__prompt | self.__llm | StrOutputParser()
             return generator.invoke(state, config)
         return self.__generator.invoke(state, config)
-
-
-if __name__ == "__main__":
-
-    print("Text Reformatter")
