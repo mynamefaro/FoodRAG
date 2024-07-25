@@ -4,17 +4,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import StrOutputParser
 from app.components.core.state import GraphState
-from app.utils.utils import load_env
-
-load_env()
-
-ANSWER_GENERATOR_PROMPT_TEMPLATE = """
-You are an assistant for question-answering tasks. 
-Use the following pieces of retrieved context to answer the question. If you don't know the answer, just say that you don't know. 
-Use five sentences maximum and keep the answer concise
-Question: {question} 
-Context: {context} 
-Just put the answer below this line:"""
+from ..prompt import ANSWER_GENERATOR_PROMPT_TEMPLATE
 
 
 class AnswerGeneratorNVIDIA(RunnableGenerator):

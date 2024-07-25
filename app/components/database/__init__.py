@@ -1,2 +1,2 @@
-from .food_sql import FoodDatabase
-from .food_vector import FoodVector
+from .sql import BaseDatabaseToolkit
+from .vector import BaseVectorDatabaseToolkit

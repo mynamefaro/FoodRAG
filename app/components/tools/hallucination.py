@@ -4,19 +4,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from ..core.state import GraphState
-from ..utils import load_env
-
-load_env()
-
-HALLUCINATION_GRADER_PROMPT_TEMPLATE = """
-You are a grader assessing whether an answer is grounded in / supported by a set of facts. Give a binary 'yes' or 'no' `isHallucinate` to indicate 
-whether the answer is grounded in / supported by a set of facts provided. Provide the binary `isHallucinate` as a JSON with two keys `isHallucinate` 
-and `reason` and no preamble or explanation. You must provide a reason for your decision. Check if the answer is grounded in the facts provided.
-Here are the facts:
-\n ------- \n
-{documents} 
-\n ------- \n
-Here is the answer: {generation}"""
+from ..prompt import HALLUCINATION_GRADER_PROMPT_TEMPLATE
 
 
 class HallucinationGraderNVIDIA(RunnableGenerator):

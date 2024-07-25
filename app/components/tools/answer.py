@@ -4,19 +4,7 @@ from langchain_openai import ChatOpenAI
 from langchain_core.prompts import PromptTemplate
 from langchain_core.output_parsers import JsonOutputParser
 from app.components.core.state import GraphState
-from app.utils.utils import load_env
-
-load_env()
-
-
-ANSWER_GRADER_PROMPT_TEMPLATE = """
-You are a grader assessing whether an answer is useful to resolve a question. Give a binary `isUseful` true or false to indicate whether the answer is 
-useful to resolve a question. Provide the binary `isUseful` as a JSON with two keys `isUseful`, `reason` and no preamble or explanation.
-Here is the answer:
-\n ------- \n
-{generation} 
-\n ------- \n
-Here is the question: {question}\n"""
+from ..prompt import ANSWER_GRADER_PROMPT_TEMPLATE
 
 
 class AnswerGraderNVIDIA(RunnableGenerator):
