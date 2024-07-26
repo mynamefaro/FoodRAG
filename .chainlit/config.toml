@@ -1,5 +1,4 @@
 [project]
-# Whether to enable telemetry (default: true). No personal data is collected.
 enable_telemetry = false
 
 
