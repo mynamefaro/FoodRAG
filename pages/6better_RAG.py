@@ -18,13 +18,14 @@ from langchain_core.prompts import PromptTemplate
 
 @st.cache_resource
 def load_rag():
-    llm = ChatNVIDIA(model="aisingapore/sea-lion-7b-instruct",temperature=0.7)
-    # llm = ChatOpenAI(model="gpt-4-turbo")
+    llm = ChatNVIDIA(model="aisingapore/sea-lion-7b-instruct",temperature=1.0,top_p=0.95,seed=42)
+    print('hello')
     loader = PyPDFDirectoryLoader("healthy_nutrition/")
     docs = loader.load()
-    text_splitter = RecursiveCharacterTextSplitter(chunk_size=1000, chunk_overlap=200)
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=200)
     splits = text_splitter.split_documents(docs)
-    vectorstore = Chroma.from_documents(documents=splits, embedding=HuggingFaceEmbeddings(model_name="monsoon-nlp/bert-base-thai"))
+    embedding = HuggingFaceEmbeddings(model_name="monsoon-nlp/bert-base-thai")
+    vectorstore = Chroma.from_documents(documents=splits, embedding=embedding)
 
     # Retrieve and generate using the relevant snippets of the blog.
     retriever = vectorstore.as_retriever()
