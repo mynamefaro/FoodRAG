@@ -1,51 +1,129 @@
-import ast
 import streamlit as st
-import pandas as pd
-from langchain_community.utilities import SQLDatabase
+import random
+import time
+import bs4
+from langchain import hub
+from langchain_chroma import Chroma
+from langchain_core.output_parsers import StrOutputParser
+from langchain_core.runnables import RunnablePassthrough
+from langchain_text_splitters import RecursiveCharacterTextSplitter
+from langchain.embeddings import HuggingFaceEmbeddings
+import os
+from langchain_community.document_loaders import PyPDFDirectoryLoader
+from langchain_nvidia_ai_endpoints import ChatNVIDIA
+from langchain_core.prompts import PromptTemplate
 
-st.sidebar.header("Data Visualization")
+
+# https://python.langchain.com/docs/modules/data_connection/document_loaders/pdf/#pypdf-directory
 
 @st.cache_resource
-def start_sql_db():
-    db = SQLDatabase.from_uri("sqlite:///food.db")
-    print(db.dialect)
-    print(db.get_usable_table_names())
-    return db
+def load_rag():
+    llm = ChatNVIDIA(model="aisingapore/sea-lion-7b-instruct",temperature=1.0,top_p=0.95,seed=42)
+    print('hello')
+    loader = PyPDFDirectoryLoader("healthy_nutrition/")
+    docs = loader.load()
+    text_splitter = RecursiveCharacterTextSplitter(chunk_size=512, chunk_overlap=200)
+    splits = text_splitter.split_documents(docs)
+    embedding = HuggingFaceEmbeddings(model_name="monsoon-nlp/bert-base-thai")
+    vectorstore = Chroma.from_documents(documents=splits, embedding=embedding)
 
-columns = ["Date", "Time", "Calorie", "Mass", "Fat", "Carb",
-           "Protein", "Food Identified"]
-db = start_sql_db()
+    # Retrieve and generate using the relevant snippets of the blog.
+    retriever = vectorstore.as_retriever()
+    manual_prompt_template = """
+    จากข้อมูลและ Context ที่กำหนดให้ จงตอบ Question พร้อมอธิบายข้อมูลในฐานะของนักโภชนาการ
+    Based on the context provided, answer the following question in a detailed and informative manner 
+    
+    Context:
+    {context}
+    
+    Question:
+    {question}
+    
+    Answer:
+    """
+    
+    # Initialize the prompt template
+    prompt = PromptTemplate(template=manual_prompt_template, input_variables=["context", "question"])
 
-st.header("Nutrition History")
-# displace top 5 recent records
-data_string = db.run("select * from food_sample ORDER BY date DESC, time DESC LIMIT 5;")
-# print(f"data:{data_string}")
+    def format_docs(docs):
+        return "\n\n".join(doc.page_content for doc in docs)
 
-columns = ['Date', 'Time', 'Calorie', 'Mass', 'Fat', 'Carb', 'Protein', 'Food Identified']
-# columns = ['date', 'time', 'calorie', 'mass', 'fat', 'carb', 'protein', 'food_identified']
-df = pd.DataFrame(ast.literal_eval(data_string), columns=columns)
-st.table(df)
+    rag_chain = (
+        {"context": retriever | format_docs, "question": RunnablePassthrough()}
+        | prompt
+        | llm
+        | StrOutputParser()
+    )
+    return rag_chain
 
-# get all records
-data_string = db.run("select * from food_sample ORDER BY date DESC, time DESC;")
-# print(f"data:{data_string}")
+rag_chain = load_rag()
 
-columns = ['Date', 'Time', 'Calorie', 'Mass', 'Fat', 'Carb', 'Protein', 'Food Identified']
-chart_data = pd.DataFrame(ast.literal_eval(data_string), columns=columns)
+st.title("Thai Food RAG")
+st.subheader("RAG Agents ที่คุณสามารถถามตอบได้")
 
 
-# chart_data = pd.DataFrame(data, columns=columns[:-1])
-st.header("Nutrition Trend")
+# Streamed response emulator
+def response_generator(response):
+    for word in response.split():
+        yield word + " "
+        time.sleep(0.05)
+        
+def show_upload(state:bool):
+    if not state:
+        st.session_state.messages.append({"role": "assistant","content": "You have cancel file upload"})
+    st.session_state["uploader_visible"] = state
 
-st.line_chart(chart_data, x="Date", y=[
-              "Calorie", "Mass", "Fat", "Carb", "Protein"])
 
-food_counts_pandas = chart_data['Food Identified'].str.split(
-    ', ').explode().value_counts()
+if "uploader_visible" not in st.session_state:
+    st.session_state["uploader_visible"] = False
 
-# Convert the dictionary to a pandas Series (you can skip this if you already have a Series)
-food_counts_pandas = pd.Series(food_counts_pandas)
+# Initialize chat history
+if "messages" not in st.session_state:
+    st.session_state.messages = []
 
-st.header("Total Unique Food Item Count")
-# Display the bar chart
-st.bar_chart(food_counts_pandas)
+if "request_uploader" not in st.session_state: st.session_state["request_uploader"] = False
+
+# Display chat messages from history on app rerun
+for message in st.session_state.messages:
+    if type(message) == dict:
+        with st.chat_message(message["role"]):
+            st.markdown(message["content"])
+        
+placeholder = st.empty()
+
+if st.session_state["uploader_visible"]:
+    file = placeholder.file_uploader("Upload your data")
+    if file:
+        with st.spinner("Processing your file"):
+                time.sleep(2)
+        st.session_state["uploader_visible"] = False
+        with st.chat_message("user"):
+            response = st.markdown("Uploaded " + file.name)
+        st.session_state.messages.append({"role": "user","content": "Uploaded " + file.name})
+        with st.chat_message("assistant"):
+            response = st.markdown("Received uploaded file")
+        st.session_state.messages.append({"role": "assistant","content": "Received uploaded file"})
+        placeholder.empty()
+
+# Accept user input
+if prompt := st.chat_input("What is up?",disabled=st.session_state["uploader_visible"]):
+    # Add user message to chat history
+    with st.chat_message("user"):
+        st.markdown(prompt)
+        st.session_state.messages.append({"role": "user", "content": prompt})
+    if prompt == "upload":
+        with st.chat_message("assistant"):
+            cols= st.columns((3,1,1))
+            cols[0].write("Do you want to upload a file?")
+            cols[1].button("yes", use_container_width=True, on_click=show_upload, args=[True])
+            cols[2].button("no", use_container_width=True, on_click=show_upload, args=[False])
+    else: 
+        # Display assistant response in chat message container
+        with st.chat_message("assistant"):
+            user_input = prompt
+            response_user = rag_chain.invoke(user_input)
+            response = st.write_stream(response_generator(response_user))
+        # Add assistant response to chat history
+        st.session_state.messages.append({"role": "assistant", "content": response})
+        
+    
